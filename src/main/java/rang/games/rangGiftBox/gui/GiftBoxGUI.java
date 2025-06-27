@@ -37,11 +37,11 @@ public class GiftBoxGUI {
 
     public void open(Player player) {
         int page = 1;
-        Inventory gui = Bukkit.createInventory(null, 54, configManager.getRawMessage("messages.gui-title").replace("%page%", String.valueOf(page)));
+        Inventory gui = Bukkit.createInventory(null, 54, configManager.getRawMessage("gui-title").replace("%page%", String.valueOf(page)));
 
         ItemStack loadingItem = new ItemStack(Material.PAPER);
         ItemMeta loadingMeta = loadingItem.getItemMeta();
-        loadingMeta.setDisplayName(configManager.getRawMessage("messages.loading-item-name"));
+        loadingMeta.setDisplayName(configManager.getRawMessage("loading-item-name"));
         loadingItem.setItemMeta(loadingMeta);
         gui.setItem(4, loadingItem);
 
@@ -49,7 +49,7 @@ public class GiftBoxGUI {
 
         databaseManager.getGifts(player.getUniqueId(), 36).thenAccept(gifts -> {
             Bukkit.getScheduler().runTask(plugin, () -> {
-                if (player.getOpenInventory().getTitle().equals(configManager.getRawMessage("messages.gui-title").replace("%page%", String.valueOf(page)))) {
+                if (player.getOpenInventory().getTitle().equals(configManager.getRawMessage("gui-title").replace("%page%", String.valueOf(page)))) {
                     populateGUI(gui, gifts);
                 }
             });
@@ -61,8 +61,8 @@ public class GiftBoxGUI {
 
         ItemStack claimAllItem = new ItemStack(Material.CHEST_MINECART);
         ItemMeta claimAllMeta = claimAllItem.getItemMeta();
-        claimAllMeta.setDisplayName(configManager.getRawMessage("messages.claim-all-item-name"));
-        claimAllMeta.setLore(configManager.getMessageList("messages.claim-all-item-lore"));
+        claimAllMeta.setDisplayName(configManager.getRawMessage("claim-all-item-name"));
+        claimAllMeta.setLore(configManager.getMessageList("claim-all-item-lore"));
         claimAllMeta.getPersistentDataContainer().set(GIFT_ACTION_KEY, PersistentDataType.STRING, ACTION_CLAIM_ALL);
         claimAllItem.setItemMeta(claimAllMeta);
         gui.setItem(4, claimAllItem);
@@ -73,11 +73,11 @@ public class GiftBoxGUI {
             ItemStack displayItem = gift.getItemStack().clone();
             ItemMeta meta = displayItem.getItemMeta();
             if (meta != null) {
-                List<String> lore = configManager.getMessageList("messages.gift-item-lore",
+                List<String> lore = configManager.getMessageList("gift-item-lore",
                         "%sender%", gift.getSender(),
                         "%amount%", String.valueOf(gift.getItemStack().getAmount()),
                         "%date%", dateFormat.format(new Date(gift.getTimestamp())),
-                        "%expire%", gift.getExpireStamp() == -1 ? configManager.getRawMessage("messages.expire-never") : dateFormat.format(new Date(gift.getExpireStamp()))
+                        "%expire%", gift.getExpireStamp() == -1 ? configManager.getRawMessage("expire-never") : dateFormat.format(new Date(gift.getExpireStamp()))
                 );
                 meta.setLore(lore);
                 meta.getPersistentDataContainer().set(GIFT_ID_KEY, PersistentDataType.STRING, gift.getId());

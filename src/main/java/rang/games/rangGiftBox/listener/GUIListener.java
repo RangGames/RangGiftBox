@@ -45,7 +45,7 @@ public class GUIListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
 
-        if (!event.getView().getTitle().startsWith(configManager.getRawMessage("messages.gui-title").split("%")[0])) {
+        if (!event.getView().getTitle().startsWith(configManager.getRawMessage("gui-title").split("%")[0])) {
             return;
         }
 
@@ -63,7 +63,7 @@ public class GUIListener implements Listener {
             double cooldown = configManager.getGuiMessageCooldown() * 1000D;
 
             if (currentTime - lastTime >= cooldown) {
-                player.sendMessage(configManager.getMessage("messages.concurrent-claim-error"));
+                player.sendMessage(configManager.getMessage("concurrent-claim-error"));
                 lastErrorMessageTime.put(player.getUniqueId(), currentTime);
             }
             return;
@@ -98,7 +98,7 @@ public class GUIListener implements Listener {
             }
 
             if (targetGift.getExpireStamp() != -1 && System.currentTimeMillis() > targetGift.getExpireStamp()) {
-                player.sendMessage(configManager.getMessage("messages.gift-expired"));
+                player.sendMessage(configManager.getMessage("gift-expired"));
                 databaseManager.deleteGift(giftId);
                 databaseManager.logAction(targetGift, LogResult.EXPIRED);
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -109,7 +109,7 @@ public class GUIListener implements Listener {
             }
 
             if (player.getInventory().firstEmpty() == -1) {
-                player.sendMessage(configManager.getMessage("messages.inventory-full"));
+                player.sendMessage(configManager.getMessage("inventory-full"));
                 player.removeMetadata(METADATA_KEY, plugin);
                 return;
             }
@@ -117,7 +117,7 @@ public class GUIListener implements Listener {
             try {
                 ItemStack originalItem = targetGift.getItemStack().clone();
                 player.getInventory().addItem(originalItem);
-                player.sendMessage(configManager.getMessage("messages.gift-claimed"));
+                player.sendMessage(configManager.getMessage("gift-claimed"));
 
                 databaseManager.deleteGift(giftId);
                 databaseManager.logAction(targetGift, LogResult.CLAIMED);
@@ -139,7 +139,7 @@ public class GUIListener implements Listener {
 
         databaseManager.getGifts(player.getUniqueId(), 36).thenAccept(gifts -> {
             if (gifts.isEmpty()) {
-                player.sendMessage(configManager.getMessage("messages.no-gifts-to-claim"));
+                player.sendMessage(configManager.getMessage("no-gifts-to-claim"));
                 player.removeMetadata(METADATA_KEY, plugin);
                 return;
             }
@@ -156,7 +156,7 @@ public class GUIListener implements Listener {
                 }
 
                 if (player.getInventory().firstEmpty() == -1) {
-                    player.sendMessage(configManager.getMessage("messages.inventory-full"));
+                    player.sendMessage(configManager.getMessage("inventory-full"));
                     break;
                 }
 
@@ -177,10 +177,10 @@ public class GUIListener implements Listener {
                     databaseManager.logAction(g, LogResult.CLAIMED);
                     Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new GiftClaimedEvent(g, player)));
                 });
-                player.sendMessage(configManager.getMessage("messages.all-gifts-claimed", "%amount%", String.valueOf(claimedCount)));
+                player.sendMessage(configManager.getMessage("all-gifts-claimed", "%amount%", String.valueOf(claimedCount)));
             } else if (claimedCount == 0 && !gifts.isEmpty()) {
                 if (player.getInventory().firstEmpty() == -1) {
-                    player.sendMessage(configManager.getMessage("messages.inventory-full"));
+                    player.sendMessage(configManager.getMessage("inventory-full"));
                 }
             }
 

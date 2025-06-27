@@ -23,7 +23,7 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         databaseManager.getGiftCount(player.getUniqueId()).thenAccept(count -> {
             if (count > 0) {
-                player.sendMessage(configManager.getMessage("messages.join-notification", "%amount%", String.valueOf(count)));
+                player.sendMessage(configManager.getMessage("join-notification", "%amount%", String.valueOf(count)));
             }
         });
     }
