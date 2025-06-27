@@ -28,7 +28,7 @@ public class DatabaseManager {
     public DatabaseManager(RangGiftBox plugin, ConfigManager configManager) {
         this.plugin = plugin;
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:mariadb://" + configManager.getDbHost() + ":" + configManager.getDbPort() + "/" + configManager.getDbName());
+        config.setJdbcUrl("jdbc:mysql://" + configManager.getDbHost() + ":" + configManager.getDbPort() + "/" + configManager.getDbName());
         config.setUsername(configManager.getDbUser());
         config.setPassword(configManager.getDbPassword());
         config.addDataSourceProperty("cachePrepStmts", "true");
