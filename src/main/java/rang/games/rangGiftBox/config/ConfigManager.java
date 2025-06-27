@@ -47,6 +47,10 @@ public class ConfigManager {
         return config.getLong("expiration-check-interval", 600);
     }
 
+    public double getGuiMessageCooldown() {
+        return config.getDouble("messages.gui-message-cooldown", 0.2);
+    }
+
     public String getMessage(String path, String... replacements) {
         String message = config.getString("messages." + path, "&cMessage not found: " + path);
         message = ChatColor.translateAlternateColorCodes('&', message);

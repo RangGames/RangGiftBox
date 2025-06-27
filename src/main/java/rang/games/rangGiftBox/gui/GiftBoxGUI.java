@@ -75,6 +75,7 @@ public class GiftBoxGUI {
             if (meta != null) {
                 List<String> lore = configManager.getMessageList("messages.gift-item-lore",
                         "%sender%", gift.getSender(),
+                        "%amount%", String.valueOf(gift.getItemStack().getAmount()),
                         "%date%", dateFormat.format(new Date(gift.getTimestamp())),
                         "%expire%", gift.getExpireStamp() == -1 ? configManager.getRawMessage("messages.expire-never") : dateFormat.format(new Date(gift.getExpireStamp()))
                 );

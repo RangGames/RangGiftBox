@@ -21,13 +21,16 @@ import rang.games.rangGiftBox.model.Gift;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GUIListener implements Listener {
 
     private final RangGiftBox plugin;
     private final DatabaseManager databaseManager;
     private final ConfigManager configManager;
+    private final Map<UUID, Double> lastErrorMessageTime = new ConcurrentHashMap<>();
 
     private static final String METADATA_KEY = "GIFTBOX_ACTION";
 
@@ -55,7 +58,14 @@ public class GUIListener implements Listener {
         if (meta == null) return;
 
         if (player.hasMetadata(METADATA_KEY)) {
-            player.sendMessage(configManager.getMessage("messages.concurrent-claim-error"));
+            double currentTime = System.currentTimeMillis();
+            double lastTime = lastErrorMessageTime.getOrDefault(player.getUniqueId(), 0D);
+            double cooldown = configManager.getGuiMessageCooldown() * 1000D;
+
+            if (currentTime - lastTime >= cooldown) {
+                player.sendMessage(configManager.getMessage("messages.concurrent-claim-error"));
+                lastErrorMessageTime.put(player.getUniqueId(), currentTime);
+            }
             return;
         }
 
@@ -77,7 +87,6 @@ public class GUIListener implements Listener {
         player.setMetadata(METADATA_KEY, new FixedMetadataValue(plugin, true));
 
         databaseManager.getGifts(player.getUniqueId(), 100).thenAccept(gifts -> {
-
             Gift targetGift = gifts.stream().filter(g -> g.getId().equals(giftId)).findFirst().orElse(null);
 
             if (targetGift == null) {
