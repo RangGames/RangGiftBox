@@ -23,7 +23,7 @@ public class GiftBoxGUI {
     private final RangGiftBox plugin;
     private final DatabaseManager databaseManager;
     private final ConfigManager configManager;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd. HH:mm");
 
     public static final NamespacedKey GIFT_ID_KEY = new NamespacedKey(RangGiftBox.getPlugin(RangGiftBox.class), "gift_id");
     public static final NamespacedKey GIFT_ACTION_KEY = new NamespacedKey(RangGiftBox.getPlugin(RangGiftBox.class), "gift_action");
