@@ -1,0 +1,36 @@
+database:
+  host: "localhost"
+  port: 3306
+  database: "giftbox"
+  username: "root"
+  password: "password"
+
+expiration-check-interval: 600
+
+messages:
+  prefix: "&f[&dGiftBox&f] "
+  no-permission: "&cYou do not have permission to use this command."
+  gift-sent: "&aSuccessfully sent the item in your hand to &e%player%&a."
+  player-not-found: "&cPlayer &e%player%&c not found."
+  no-item-in-hand: "&cYou must be holding an item to send."
+  invalid-command-usage: "&cInvalid usage. Please use: %usage%"
+  invalid-number: "&cThe expiration time must be a valid number."
+  inventory-full: "&cYour inventory is full. Please make space to claim your gift(s)."
+  gift-claimed: "&aYou have successfully claimed the gift."
+  all-gifts-claimed: "&aSuccessfully claimed &e%amount%&a gift(s). Some items may not have been claimed if your inventory was full."
+  no-gifts-to-claim: "&cThere are no claimable gifts in your gift box."
+  join-notification: "&aYou have &e%amount%&a gift(s) waiting for you! Type &e/우편함&a to check."
+  gift-expired: "&cThis gift has expired and cannot be claimed."
+  concurrent-claim-error: "&cYou are already processing a claim. Please wait a moment."
+  gui-title: "선물함 (페이지: %page%)"
+  loading-item-name: "&7로딩 중..."
+  claim-all-item-name: "&a[ 아이템 모두 받기 ]"
+  claim-all-item-lore:
+    - "&7클릭 시 수령 가능한 모든 선물을"
+    - "&7한 번에 받습니다."
+  gift-item-lore:
+    - "&f"
+    - "&7보낸 사람: &e%sender%"
+    - "&7받은 날짜: &e%date%"
+    - "&7만료 기한: &e%expire%"
+  expire-never: "영구 보관"

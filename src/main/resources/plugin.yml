@@ -1,0 +1,21 @@
+name: RangGiftBox
+version: '1.0-SNAPSHOT'
+main: rang.games.rangGiftBox.RangGiftBox
+api-version: '1.21'
+author: Gemini Code Assist
+description: A comprehensive gift box system for Minecraft servers.
+commands:
+  우편함:
+    description: 선물함을 엽니다.
+    aliases: [선물함, giftbox]
+    usage: /<command>
+permissions:
+  giftbox.user:
+    description: Allows opening the gift box.
+    default: true
+  giftbox.admin.give:
+    description: Allows giving an item to a player.
+    default: op
+  giftbox.admin.give.expire:
+    description: Allows giving an item with an expiration time.
+    default: op
