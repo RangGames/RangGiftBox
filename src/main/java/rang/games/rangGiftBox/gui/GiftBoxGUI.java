@@ -17,6 +17,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 public class GiftBoxGUI {
 
@@ -24,6 +26,8 @@ public class GiftBoxGUI {
     private final DatabaseManager databaseManager;
     private final ConfigManager configManager;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd. HH:mm");
+    private final Map<UUID, Long> lastOpenTime = new ConcurrentHashMap<>();
+    private static final long OPEN_COOLDOWN = 500; // 500ms cooldown between opens
 
     public static final NamespacedKey GIFT_ID_KEY = new NamespacedKey(RangGiftBox.getPlugin(RangGiftBox.class), "gift_id");
     public static final NamespacedKey GIFT_ACTION_KEY = new NamespacedKey(RangGiftBox.getPlugin(RangGiftBox.class), "gift_action");
@@ -36,54 +40,118 @@ public class GiftBoxGUI {
     }
 
     public void open(Player player) {
+        // Prevent spam opening
+        long currentTime = System.currentTimeMillis();
+        Long lastOpen = lastOpenTime.get(player.getUniqueId());
+        if (lastOpen != null && currentTime - lastOpen < OPEN_COOLDOWN) {
+            return;
+        }
+        lastOpenTime.put(player.getUniqueId(), currentTime);
+        
         int page = 1;
-        Inventory gui = Bukkit.createInventory(null, 54, configManager.getRawMessage("gui-title").replace("%page%", String.valueOf(page)));
+        String title = configManager.getRawMessage("gui-title").replace("%page%", String.valueOf(page));
+        Inventory gui = Bukkit.createInventory(null, 54, title);
 
-        ItemStack loadingItem = new ItemStack(Material.PAPER);
-        ItemMeta loadingMeta = loadingItem.getItemMeta();
-        loadingMeta.setDisplayName(configManager.getRawMessage("loading-item-name"));
-        loadingItem.setItemMeta(loadingMeta);
+        // Show loading indicator
+        ItemStack loadingItem = createLoadingItem();
         gui.setItem(4, loadingItem);
 
         player.openInventory(gui);
 
+        // Load gifts asynchronously
         databaseManager.getGifts(player.getUniqueId(), 36).thenAccept(gifts -> {
+            // Only update if player still has the GUI open
             Bukkit.getScheduler().runTask(plugin, () -> {
-                if (player.getOpenInventory().getTitle().equals(configManager.getRawMessage("gui-title").replace("%page%", String.valueOf(page)))) {
-                    populateGUI(gui, gifts);
+                if (player.getOpenInventory() != null && 
+                    player.getOpenInventory().getTitle().equals(title)) {
+                    populateGUI(gui, gifts, player);
                 }
             });
+        }).exceptionally(throwable -> {
+            plugin.getLogger().severe("Failed to load gifts for player " + player.getName() + ": " + throwable.getMessage());
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                player.closeInventory();
+                player.sendMessage(configManager.getMessage("loading-error", "Failed to load gifts. Please try again."));
+            });
+            return null;
         });
     }
+    
+    private ItemStack createLoadingItem() {
+        ItemStack loadingItem = new ItemStack(Material.PAPER);
+        ItemMeta loadingMeta = loadingItem.getItemMeta();
+        if (loadingMeta != null) {
+            loadingMeta.setDisplayName(configManager.getRawMessage("loading-item-name"));
+            loadingItem.setItemMeta(loadingMeta);
+        }
+        return loadingItem;
+    }
 
-    private void populateGUI(Inventory gui, List<Gift> gifts) {
+    private void populateGUI(Inventory gui, List<Gift> gifts, Player player) {
         gui.clear();
 
-        ItemStack claimAllItem = new ItemStack(Material.CHEST_MINECART);
-        ItemMeta claimAllMeta = claimAllItem.getItemMeta();
-        claimAllMeta.setDisplayName(configManager.getRawMessage("claim-all-item-name"));
-        claimAllMeta.setLore(configManager.getMessageList("claim-all-item-lore"));
-        claimAllMeta.getPersistentDataContainer().set(GIFT_ACTION_KEY, PersistentDataType.STRING, ACTION_CLAIM_ALL);
-        claimAllItem.setItemMeta(claimAllMeta);
-        gui.setItem(4, claimAllItem);
+        // Only show claim all button if there are gifts
+        if (!gifts.isEmpty()) {
+            ItemStack claimAllItem = createClaimAllItem();
+            gui.setItem(4, claimAllItem);
+        }
 
+        // Populate gifts efficiently
         int slot = 9;
         for (Gift gift : gifts) {
-            if (slot >= 45) break;
+            if (slot >= 45) break; // Leave bottom row empty
+            
+            ItemStack displayItem = createGiftDisplayItem(gift);
+            if (displayItem != null) {
+                gui.setItem(slot, displayItem);
+            }
+            slot++;
+        }
+        
+        // Clean up old entries from lastOpenTime map periodically
+        if (lastOpenTime.size() > 100) {
+            long cutoffTime = System.currentTimeMillis() - 60000; // 1 minute ago
+            lastOpenTime.entrySet().removeIf(entry -> entry.getValue() < cutoffTime);
+        }
+    }
+    
+    private ItemStack createClaimAllItem() {
+        ItemStack claimAllItem = new ItemStack(Material.CHEST_MINECART);
+        ItemMeta claimAllMeta = claimAllItem.getItemMeta();
+        if (claimAllMeta != null) {
+            claimAllMeta.setDisplayName(configManager.getRawMessage("claim-all-item-name"));
+            claimAllMeta.setLore(configManager.getMessageList("claim-all-item-lore"));
+            claimAllMeta.getPersistentDataContainer().set(GIFT_ACTION_KEY, PersistentDataType.STRING, ACTION_CLAIM_ALL);
+            claimAllItem.setItemMeta(claimAllMeta);
+        }
+        return claimAllItem;
+    }
+    
+    private ItemStack createGiftDisplayItem(Gift gift) {
+        try {
             ItemStack displayItem = gift.getItemStack().clone();
             ItemMeta meta = displayItem.getItemMeta();
             if (meta != null) {
+                // Format dates once
+                String dateStr = dateFormat.format(new Date(gift.getTimestamp()));
+                String expireStr = gift.getExpireStamp() == -1 
+                    ? configManager.getRawMessage("expire-never") 
+                    : dateFormat.format(new Date(gift.getExpireStamp()));
+                
                 List<String> lore = configManager.getMessageList("gift-item-lore",
                         "%sender%", gift.getSender(),
                         "%amount%", String.valueOf(gift.getItemStack().getAmount()),
-                        "%date%", dateFormat.format(new Date(gift.getTimestamp())),
-                        "%expire%", gift.getExpireStamp() == -1 ? configManager.getRawMessage("expire-never") : dateFormat.format(new Date(gift.getExpireStamp()))
+                        "%date%", dateStr,
+                        "%expire%", expireStr
                 );
                 meta.setLore(lore);
                 meta.getPersistentDataContainer().set(GIFT_ID_KEY, PersistentDataType.STRING, gift.getId());
                 displayItem.setItemMeta(meta);
             }
-            gui.setItem(slot++, displayItem);
+            return displayItem;
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to create display item for gift " + gift.getId() + ": " + e.getMessage());
+            return null;
         }
     }
 }

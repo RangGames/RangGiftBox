@@ -99,8 +99,12 @@ public class GUIListener implements Listener {
 
             if (targetGift.getExpireStamp() != -1 && System.currentTimeMillis() > targetGift.getExpireStamp()) {
                 player.sendMessage(configManager.getMessage("gift-expired"));
-                databaseManager.deleteGift(giftId);
-                databaseManager.logAction(targetGift, LogResult.EXPIRED);
+                databaseManager.deleteGift(giftId).thenRun(() -> {
+                    databaseManager.logAction(targetGift, LogResult.EXPIRED);
+                }).exceptionally(ex -> {
+                    plugin.getLogger().severe("Failed to delete expired gift: " + ex.getMessage());
+                    return null;
+                });
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     player.removeMetadata(METADATA_KEY, plugin);
                     plugin.getGiftBoxGUI().open(player);
@@ -119,9 +123,15 @@ public class GUIListener implements Listener {
                 player.getInventory().addItem(originalItem);
                 player.sendMessage(configManager.getMessage("gift-claimed"));
 
-                databaseManager.deleteGift(giftId);
-                databaseManager.logAction(targetGift, LogResult.CLAIMED);
-                Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new GiftClaimedEvent(targetGift, player)));
+                databaseManager.deleteGift(giftId).thenAccept(deleted -> {
+                    if (deleted) {
+                        databaseManager.logAction(targetGift, LogResult.CLAIMED);
+                        Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new GiftClaimedEvent(targetGift, player)));
+                    }
+                }).exceptionally(ex -> {
+                    plugin.getLogger().severe("Failed to delete claimed gift: " + ex.getMessage());
+                    return null;
+                });
 
             } catch (Exception e) {
                 plugin.getLogger().severe("Error claiming single gift: " + e.getMessage());
@@ -150,8 +160,12 @@ public class GUIListener implements Listener {
 
             for (Gift gift : gifts) {
                 if (gift.getExpireStamp() != -1 && System.currentTimeMillis() > gift.getExpireStamp()) {
-                    databaseManager.deleteGift(gift.getId());
-                    databaseManager.logAction(gift, LogResult.EXPIRED);
+                    databaseManager.deleteGift(gift.getId()).thenRun(() -> {
+                        databaseManager.logAction(gift, LogResult.EXPIRED);
+                    }).exceptionally(ex -> {
+                        plugin.getLogger().warning("Failed to delete expired gift during claim all: " + ex.getMessage());
+                        return null;
+                    });
                     continue;
                 }
 
@@ -172,12 +186,18 @@ public class GUIListener implements Listener {
             }
 
             if (!claimedGiftIds.isEmpty()) {
-                databaseManager.deleteGifts(claimedGiftIds);
-                claimedGifts.forEach(g -> {
-                    databaseManager.logAction(g, LogResult.CLAIMED);
-                    Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new GiftClaimedEvent(g, player)));
+                final int finalClaimedCount = claimedCount;
+                databaseManager.deleteGifts(claimedGiftIds).thenAccept(deletedCount -> {
+                    claimedGifts.forEach(g -> {
+                        databaseManager.logAction(g, LogResult.CLAIMED);
+                        Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new GiftClaimedEvent(g, player)));
+                    });
+                    player.sendMessage(configManager.getMessage("all-gifts-claimed", "%amount%", String.valueOf(finalClaimedCount)));
+                }).exceptionally(ex -> {
+                    plugin.getLogger().severe("Failed to delete claimed gifts: " + ex.getMessage());
+                    player.sendMessage(configManager.getMessage("all-gifts-claimed", "%amount%", String.valueOf(finalClaimedCount)));
+                    return null;
                 });
-                player.sendMessage(configManager.getMessage("all-gifts-claimed", "%amount%", String.valueOf(claimedCount)));
             } else if (claimedCount == 0 && !gifts.isEmpty()) {
                 if (player.getInventory().firstEmpty() == -1) {
                     player.sendMessage(configManager.getMessage("inventory-full"));
