@@ -1,7 +1,7 @@
-package rang.games.rangGiftBox.api;
+package wiki.creeper.rangGiftBox.api;
 
 import org.bukkit.inventory.ItemStack;
-import rang.games.rangGiftBox.model.Gift;
+import wiki.creeper.rangGiftBox.model.Gift;
 
 import java.util.List;
 import java.util.UUID;

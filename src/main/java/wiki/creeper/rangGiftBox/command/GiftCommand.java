@@ -1,4 +1,4 @@
-package rang.games.rangGiftBox.command;
+package wiki.creeper.rangGiftBox.command;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -9,16 +9,17 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import rang.games.rangGiftBox.RangGiftBox;
-import rang.games.rangGiftBox.config.ConfigManager;
-import rang.games.rangGiftBox.database.DatabaseManager;
-import rang.games.rangGiftBox.model.Gift;
+import org.bukkit.ChatColor;
+import wiki.creeper.rangGiftBox.RangGiftBox;
+import wiki.creeper.rangGiftBox.config.ConfigManager;
+import wiki.creeper.rangGiftBox.database.DatabaseManager;
+import wiki.creeper.rangGiftBox.util.SchedulerUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.logging.Level;
 
 public class GiftCommand implements CommandExecutor, TabCompleter {
 
@@ -108,8 +109,15 @@ public class GiftCommand implements CommandExecutor, TabCompleter {
                 itemInHand.clone(),
                 from,
                 expireSeconds
-        ).thenRun(() -> {
-            sender.sendMessage(configManager.getMessage("gift-sent", "%player%", targetPlayer.getName()));
+        ).thenRunAsync(() -> {
+            String targetName = targetPlayer.getName() != null ? targetPlayer.getName() : targetPlayer.getUniqueId().toString();
+            sender.sendMessage(configManager.getMessage("gift-sent", "%player%", targetName));
+        }, SchedulerUtil.syncExecutor(plugin)).exceptionally(throwable -> {
+            plugin.getLogger().log(Level.SEVERE, "Failed to send gift via command", throwable);
+            SchedulerUtil.runSync(plugin, () -> sender.sendMessage(
+                    configManager.getRawMessage("prefix") + ChatColor.RED + "선물 지급에 실패했습니다. 콘솔 로그를 확인해주세요."
+            ));
+            return null;
         });
     }
 

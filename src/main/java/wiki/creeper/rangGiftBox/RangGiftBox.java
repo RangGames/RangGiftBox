@@ -1,17 +1,17 @@
-package rang.games.rangGiftBox;
+package wiki.creeper.rangGiftBox;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
-import rang.games.rangGiftBox.api.GiftBoxAPI;
-import rang.games.rangGiftBox.api.GiftBoxAPIImpl;
-import rang.games.rangGiftBox.command.GiftCommand;
-import rang.games.rangGiftBox.config.ConfigManager;
-import rang.games.rangGiftBox.database.DatabaseManager;
-import rang.games.rangGiftBox.gui.GiftBoxGUI;
-import rang.games.rangGiftBox.listener.GUIListener;
-import rang.games.rangGiftBox.listener.PlayerListener;
-import rang.games.rangGiftBox.task.ExpirationTask;
+import wiki.creeper.rangGiftBox.api.GiftBoxAPI;
+import wiki.creeper.rangGiftBox.api.GiftBoxAPIImpl;
+import wiki.creeper.rangGiftBox.command.GiftCommand;
+import wiki.creeper.rangGiftBox.config.ConfigManager;
+import wiki.creeper.rangGiftBox.database.DatabaseManager;
+import wiki.creeper.rangGiftBox.gui.GiftBoxGUI;
+import wiki.creeper.rangGiftBox.listener.GUIListener;
+import wiki.creeper.rangGiftBox.listener.PlayerListener;
+import wiki.creeper.rangGiftBox.task.ExpirationTask;
 
 /**
  * RangGiftBox - A comprehensive gift box system for Minecraft servers
@@ -85,7 +85,10 @@ public final class RangGiftBox extends JavaPlugin {
      */
     @Override
     public void onDisable() {
-        Bukkit.getServicesManager().unregister(GiftBoxAPI.class, giftBoxAPI);
+        if (giftBoxAPI != null) {
+            Bukkit.getServicesManager().unregister(GiftBoxAPI.class, giftBoxAPI);
+            giftBoxAPI = null;
+        }
 
         if (databaseManager != null) {
             databaseManager.close();

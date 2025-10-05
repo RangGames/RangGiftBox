@@ -1,7 +1,7 @@
-package rang.games.rangGiftBox.event;
+package wiki.creeper.rangGiftBox.event;
 
 import org.bukkit.event.Event;
-import rang.games.rangGiftBox.model.Gift;
+import wiki.creeper.rangGiftBox.model.Gift;
 
 public abstract class GiftBoxEvent extends Event {
     protected final Gift gift;

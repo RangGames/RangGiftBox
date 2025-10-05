@@ -1,6 +1,6 @@
-name: RangGiftBox
-version: '1.0-SNAPSHOT'
-main: rang.games.rangGiftBox.RangGiftBox
+name: ${project.name}
+version: ${project.version}
+main: wiki.creeper.rangGiftBox.RangGiftBox
 api-version: '1.21'
 author: Gemini Code Assist
 description: A comprehensive gift box system for Minecraft servers.

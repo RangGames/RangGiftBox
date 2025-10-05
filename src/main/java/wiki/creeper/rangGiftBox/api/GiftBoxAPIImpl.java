@@ -1,10 +1,10 @@
-package rang.games.rangGiftBox.api;
+package wiki.creeper.rangGiftBox.api;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import rang.games.rangGiftBox.RangGiftBox;
-import rang.games.rangGiftBox.database.DatabaseManager;
-import rang.games.rangGiftBox.model.Gift;
+import wiki.creeper.rangGiftBox.RangGiftBox;
+import wiki.creeper.rangGiftBox.database.DatabaseManager;
+import wiki.creeper.rangGiftBox.model.Gift;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,10 +50,21 @@ public class GiftBoxAPIImpl implements GiftBoxAPI {
         }
         
         // Sanitize sender name to prevent potential exploits
-        String sanitizedSender = senderName.trim().substring(0, Math.min(senderName.length(), 100));
-        
+        String trimmedSender = senderName.trim();
+        String sanitizedSender = trimmedSender.substring(0, Math.min(trimmedSender.length(), 100));
+
         long currentTime = System.currentTimeMillis();
-        long expireTime = (expireSeconds > 0) ? currentTime + (expireSeconds * 1000) : -1;
+        long expireTime = -1;
+        if (expireSeconds > 0) {
+            try {
+                long expireMillis = Math.multiplyExact(expireSeconds, 1000L);
+                expireTime = Math.addExact(currentTime, expireMillis);
+            } catch (ArithmeticException ex) {
+                return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("Expire seconds is too large", ex)
+                );
+            }
+        }
 
         Gift gift = new Gift(
                 UUID.randomUUID().toString(),

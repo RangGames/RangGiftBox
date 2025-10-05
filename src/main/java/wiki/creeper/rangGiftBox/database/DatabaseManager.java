@@ -1,14 +1,15 @@
-package rang.games.rangGiftBox.database;
+package wiki.creeper.rangGiftBox.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.Bukkit;
-import rang.games.rangGiftBox.RangGiftBox;
-import rang.games.rangGiftBox.config.ConfigManager;
-import rang.games.rangGiftBox.event.GiftExpiredEvent;
-import rang.games.rangGiftBox.event.GiftSentEvent;
-import rang.games.rangGiftBox.model.Gift;
-import rang.games.rangGiftBox.util.ItemSerializer;
+import wiki.creeper.rangGiftBox.RangGiftBox;
+import wiki.creeper.rangGiftBox.config.ConfigManager;
+import wiki.creeper.rangGiftBox.event.GiftExpiredEvent;
+import wiki.creeper.rangGiftBox.event.GiftSentEvent;
+import wiki.creeper.rangGiftBox.model.Gift;
+import wiki.creeper.rangGiftBox.util.ItemSerializer;
+import wiki.creeper.rangGiftBox.util.SchedulerUtil;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 
 /**
@@ -39,6 +41,8 @@ public class DatabaseManager {
     private final RangGiftBox plugin;
     private final HikariDataSource dataSource;
     private volatile boolean isInitialized = false;
+    private final Executor queryExecutor;
+    private volatile boolean closed = false;
 
     /**
      * Creates a new DatabaseManager with HikariCP connection pool.
@@ -70,6 +74,8 @@ public class DatabaseManager {
             plugin.getLogger().log(Level.SEVERE, "Failed to initialize database connection pool", e);
             throw new RuntimeException("Database initialization failed", e);
         }
+
+        this.queryExecutor = SchedulerUtil.asyncExecutor(plugin);
     }
 
     /**
@@ -119,7 +125,7 @@ public class DatabaseManager {
                 plugin.getLogger().log(Level.SEVERE, "Could not initialize database tables!", e);
                 return false;
             }
-        }).exceptionally(throwable -> {
+        }, queryExecutor).exceptionally(throwable -> {
             plugin.getLogger().log(Level.SEVERE, "Unexpected error during database initialization", throwable);
             return false;
         });
@@ -130,6 +136,7 @@ public class DatabaseManager {
      * Should be called when the plugin is disabled.
      */
     public void close() {
+        closed = true;
         if (dataSource != null && !dataSource.isClosed()) {
             try {
                 dataSource.close();
@@ -150,6 +157,9 @@ public class DatabaseManager {
      * @throws CompletionException if the database operation fails
      */
     public CompletableFuture<Void> addGift(Gift gift) {
+        if (closed) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Database manager is shut down"));
+        }
         return CompletableFuture.runAsync(() -> {
             try (Connection connection = dataSource.getConnection();
                  PreparedStatement ps = connection.prepareStatement("INSERT INTO present (ID, UUID, ItemStack, Count, Sender, TimeStamp, ExpireStamp) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
@@ -175,7 +185,7 @@ public class DatabaseManager {
                 plugin.getLogger().log(Level.SEVERE, "Error adding gift to database for player " + gift.getPlayerUUID(), e);
                 throw new CompletionException("Failed to add gift", e);
             }
-        });
+        }, queryExecutor);
     }
 
     /**
@@ -188,6 +198,9 @@ public class DatabaseManager {
      * @throws CompletionException if the database operation fails
      */
     public CompletableFuture<List<Gift>> getGifts(UUID playerUUID, int limit) {
+        if (closed) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Database manager is shut down"));
+        }
         return CompletableFuture.supplyAsync(() -> {
             List<Gift> gifts = new ArrayList<>();
             String query = "SELECT * FROM present WHERE UUID = ? AND (ExpireStamp = -1 OR ExpireStamp > ?) ORDER BY TimeStamp ASC LIMIT ?";
@@ -216,7 +229,7 @@ public class DatabaseManager {
                 throw new CompletionException("Failed to deserialize gift items", e);
             }
             return gifts;
-        });
+        }, queryExecutor);
     }
 
     /**
@@ -227,6 +240,9 @@ public class DatabaseManager {
      * @throws CompletionException if the database operation fails
      */
     public CompletableFuture<Integer> getGiftCount(UUID playerUUID) {
+        if (closed) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Database manager is shut down"));
+        }
         return CompletableFuture.supplyAsync(() -> {
             String query = "SELECT COUNT(*) FROM present WHERE UUID = ? AND (ExpireStamp = -1 OR ExpireStamp > ?)";
             try (Connection connection = dataSource.getConnection();
@@ -243,7 +259,7 @@ public class DatabaseManager {
                 throw new CompletionException("Failed to get gift count", e);
             }
             return 0;
-        });
+        }, queryExecutor);
     }
 
     /**
@@ -254,6 +270,9 @@ public class DatabaseManager {
      * @throws CompletionException if the database operation fails
      */
     public CompletableFuture<Boolean> deleteGift(String giftId) {
+        if (closed) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Database manager is shut down"));
+        }
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = dataSource.getConnection();
                  PreparedStatement ps = connection.prepareStatement("DELETE FROM " + TABLE_PRESENT + " WHERE ID = ?")) {
@@ -264,7 +283,7 @@ public class DatabaseManager {
                 plugin.getLogger().log(Level.SEVERE, "Error deleting gift " + giftId + " from database", e);
                 throw new CompletionException("Failed to delete gift", e);
             }
-        });
+        }, queryExecutor);
     }
 
     /**
@@ -276,9 +295,12 @@ public class DatabaseManager {
      * @throws CompletionException if the database operation fails
      */
     public CompletableFuture<Integer> deleteGifts(List<String> giftIds) {
+        if (closed) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Database manager is shut down"));
+        }
         return CompletableFuture.supplyAsync(() -> {
             if (giftIds.isEmpty()) return 0;
-            
+
             // Use batch delete for better performance
             String query = "DELETE FROM " + TABLE_PRESENT + " WHERE ID = ?";
             try (Connection connection = dataSource.getConnection();
@@ -287,25 +309,22 @@ public class DatabaseManager {
                 connection.setAutoCommit(false);
                 try {
                     int totalDeleted = 0;
+                    int batchSize = 0;
                     for (String giftId : giftIds) {
                         ps.setString(1, giftId);
                         ps.addBatch();
-                        
-                        // Execute batch every 100 items
-                        if (totalDeleted % 100 == 0 && totalDeleted > 0) {
-                            int[] results = ps.executeBatch();
-                            for (int result : results) {
-                                if (result > 0) totalDeleted++;
-                            }
+                        batchSize++;
+
+                        if (batchSize == 100) {
+                            totalDeleted += countSuccessfulUpdates(ps.executeBatch());
+                            batchSize = 0;
                         }
                     }
-                    
-                    // Execute remaining batch
-                    int[] results = ps.executeBatch();
-                    for (int result : results) {
-                        if (result > 0) totalDeleted++;
+
+                    if (batchSize > 0) {
+                        totalDeleted += countSuccessfulUpdates(ps.executeBatch());
                     }
-                    
+
                     connection.commit();
                     return totalDeleted;
                 } catch (SQLException e) {
@@ -318,7 +337,7 @@ public class DatabaseManager {
                 plugin.getLogger().log(Level.SEVERE, "Error deleting " + giftIds.size() + " gifts from database", e);
                 throw new CompletionException("Failed to delete gifts", e);
             }
-        });
+        }, queryExecutor);
     }
 
     /**
@@ -330,6 +349,9 @@ public class DatabaseManager {
      * @return CompletableFuture<Void> that completes when logged
      */
     public CompletableFuture<Void> logAction(Gift gift, LogResult result) {
+        if (closed) {
+            return CompletableFuture.completedFuture(null);
+        }
         return CompletableFuture.runAsync(() -> {
             String query = "INSERT INTO present_log (GiftID, PlayerUUID, ItemStack, Count, Sender, Result, TimeStamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
             try (Connection connection = dataSource.getConnection();
@@ -348,7 +370,7 @@ public class DatabaseManager {
             } catch (IllegalStateException e) {
                 plugin.getLogger().log(Level.WARNING, "Error serializing item for log: " + gift.getId(), e);
             }
-        });
+        }, queryExecutor);
     }
 
     /**
@@ -359,6 +381,9 @@ public class DatabaseManager {
      * @throws CompletionException if the database operation fails
      */
     public CompletableFuture<Void> findAndRemoveExpiredGifts() {
+        if (closed) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Database manager is shut down"));
+        }
         return CompletableFuture.runAsync(() -> {
             List<Gift> expiredGifts = new ArrayList<>();
             String selectQuery = "SELECT * FROM present WHERE ExpireStamp != -1 AND ExpireStamp <= ?";
@@ -413,6 +438,18 @@ public class DatabaseManager {
                 plugin.getLogger().log(Level.SEVERE, "Error removing expired gifts from database", e);
                 throw new CompletionException("Failed to remove expired gifts", e);
             }
-        });
+        }, queryExecutor);
     }
+
+
+    private int countSuccessfulUpdates(int[] results) {
+        int deleted = 0;
+        for (int result : results) {
+            if (result > 0 || result == PreparedStatement.SUCCESS_NO_INFO) {
+                deleted++;
+            }
+        }
+        return deleted;
+    }
+
 }

@@ -1,4 +1,4 @@
-package rang.games.rangGiftBox.gui;
+package wiki.creeper.rangGiftBox.gui;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -8,10 +8,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import rang.games.rangGiftBox.RangGiftBox;
-import rang.games.rangGiftBox.config.ConfigManager;
-import rang.games.rangGiftBox.database.DatabaseManager;
-import rang.games.rangGiftBox.model.Gift;
+import wiki.creeper.rangGiftBox.RangGiftBox;
+import wiki.creeper.rangGiftBox.config.ConfigManager;
+import wiki.creeper.rangGiftBox.database.DatabaseManager;
+import wiki.creeper.rangGiftBox.model.Gift;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

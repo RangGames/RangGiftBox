@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>rang.games</groupId>
-    <artifactId>RangGiftBox</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <groupId>wiki.creeper</groupId>
+    <artifactId>CreeperGiftBox</artifactId>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>RangGiftBox</name>
+    <name>CreeperGiftBox</name>
 
     <properties>
         <java.version>21</java.version>
@@ -45,11 +45,7 @@
                     <relocations>
                         <relocation>
                             <pattern>com.zaxxer.hikari</pattern>
-                            <shadedPattern>rang.games.rangGiftBox.lib.hikari</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>org.mariadb.jdbc</pattern>
-                            <shadedPattern>rang.games.rangGiftBox.lib.mariadb</shadedPattern>
+                            <shadedPattern>wiki.creeper.rangGiftBox.lib.hikari</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
@@ -91,7 +87,7 @@
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>3.4.0</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

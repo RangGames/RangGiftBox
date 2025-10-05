@@ -1,12 +1,11 @@
-package rang.games.rangGiftBox.config;
+package wiki.creeper.rangGiftBox.config;
 
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
-import rang.games.rangGiftBox.RangGiftBox;
+import wiki.creeper.rangGiftBox.RangGiftBox;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.logging.Level;
 
 public class ConfigManager {
 

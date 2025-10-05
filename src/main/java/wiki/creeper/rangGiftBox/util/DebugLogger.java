@@ -1,6 +1,6 @@
-package rang.games.rangGiftBox.util;
+package wiki.creeper.rangGiftBox.util;
 
-import rang.games.rangGiftBox.RangGiftBox;
+import wiki.creeper.rangGiftBox.RangGiftBox;
 import java.util.logging.Level;
 
 /**
