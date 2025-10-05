@@ -1,12 +1,12 @@
-package wiki.creeper.rangGiftBox.event;
+package wiki.creeper.creeperGiftBox.event;
 
 import org.bukkit.event.HandlerList;
-import wiki.creeper.rangGiftBox.model.Gift;
+import wiki.creeper.creeperGiftBox.model.Gift;
 
-public class GiftExpiredEvent extends GiftBoxEvent {
+public class GiftSentEvent extends GiftBoxEvent {
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public GiftExpiredEvent(Gift gift) {
+    public GiftSentEvent(Gift gift) {
         super(gift);
     }
 

@@ -1,19 +1,19 @@
-package wiki.creeper.rangGiftBox.api;
+package wiki.creeper.creeperGiftBox.api;
 
 import org.bukkit.inventory.ItemStack;
-import wiki.creeper.rangGiftBox.model.Gift;
+import wiki.creeper.creeperGiftBox.model.Gift;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * RangGiftBox Public API
+ * CreeperGiftBox Public API
  * 
  * This API provides thread-safe methods for interacting with the gift box system.
  * All methods return CompletableFuture for asynchronous operations.
  * 
- * @author RangGiftBox Team
+ * @author CreeperGiftBox
  * @version 1.0
  */
 public interface GiftBoxAPI {
@@ -53,4 +53,14 @@ public interface GiftBoxAPI {
      * @throws IllegalArgumentException playerUUID가 null인 경우
      */
     CompletableFuture<Integer> getPlayerGiftCount(UUID playerUUID);
+
+    /**
+     * 데이터베이스 초기화가 완료되었는지 확인하기 위해 사용할 수 있는 Future를 반환합니다.
+     * 초기화가 이미 완료되었다면 즉시 완료된 Future가 반환됩니다.
+     *
+     * @return 데이터베이스 준비 완료 시 완료되는 CompletableFuture
+     */
+    default CompletableFuture<Void> whenReady() {
+        return CompletableFuture.completedFuture(null);
+    }
 }

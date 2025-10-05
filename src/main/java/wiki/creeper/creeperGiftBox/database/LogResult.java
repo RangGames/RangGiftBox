@@ -1,4 +1,4 @@
-package wiki.creeper.rangGiftBox.database;
+package wiki.creeper.creeperGiftBox.database;
 
 public enum LogResult {
     EXPIRED(0),

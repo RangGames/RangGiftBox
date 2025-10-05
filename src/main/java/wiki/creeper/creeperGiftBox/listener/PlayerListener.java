@@ -1,23 +1,23 @@
-package wiki.creeper.rangGiftBox.listener;
+package wiki.creeper.creeperGiftBox.listener;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import wiki.creeper.rangGiftBox.RangGiftBox;
-import wiki.creeper.rangGiftBox.config.ConfigManager;
-import wiki.creeper.rangGiftBox.database.DatabaseManager;
-import wiki.creeper.rangGiftBox.util.SchedulerUtil;
+import wiki.creeper.creeperGiftBox.CreeperGiftBox;
+import wiki.creeper.creeperGiftBox.config.ConfigManager;
+import wiki.creeper.creeperGiftBox.database.DatabaseManager;
+import wiki.creeper.creeperGiftBox.util.SchedulerUtil;
 
 import java.util.logging.Level;
 
 public class PlayerListener implements Listener {
 
-    private final RangGiftBox plugin;
+    private final CreeperGiftBox plugin;
     private final DatabaseManager databaseManager;
     private final ConfigManager configManager;
 
-    public PlayerListener(RangGiftBox plugin) {
+    public PlayerListener(CreeperGiftBox plugin) {
         this.plugin = plugin;
         this.databaseManager = plugin.getDatabaseManager();
         this.configManager = plugin.getConfigManager();

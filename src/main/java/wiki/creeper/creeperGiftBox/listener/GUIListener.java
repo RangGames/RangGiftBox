@@ -1,4 +1,4 @@
-package wiki.creeper.rangGiftBox.listener;
+package wiki.creeper.creeperGiftBox.listener;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -11,14 +11,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import wiki.creeper.rangGiftBox.RangGiftBox;
-import wiki.creeper.rangGiftBox.config.ConfigManager;
-import wiki.creeper.rangGiftBox.database.DatabaseManager;
-import wiki.creeper.rangGiftBox.database.LogResult;
-import wiki.creeper.rangGiftBox.event.GiftClaimedEvent;
-import wiki.creeper.rangGiftBox.gui.GiftBoxGUI;
-import wiki.creeper.rangGiftBox.model.Gift;
-import wiki.creeper.rangGiftBox.util.SchedulerUtil;
+import wiki.creeper.creeperGiftBox.CreeperGiftBox;
+import wiki.creeper.creeperGiftBox.config.ConfigManager;
+import wiki.creeper.creeperGiftBox.database.DatabaseManager;
+import wiki.creeper.creeperGiftBox.database.LogResult;
+import wiki.creeper.creeperGiftBox.event.GiftClaimedEvent;
+import wiki.creeper.creeperGiftBox.gui.GiftBoxGUI;
+import wiki.creeper.creeperGiftBox.model.Gift;
+import wiki.creeper.creeperGiftBox.util.SchedulerUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,14 +29,14 @@ import java.util.logging.Level;
 
 public class GUIListener implements Listener {
 
-    private final RangGiftBox plugin;
+    private final CreeperGiftBox plugin;
     private final DatabaseManager databaseManager;
     private final ConfigManager configManager;
     private final Map<UUID, Double> lastErrorMessageTime = new ConcurrentHashMap<>();
 
     private static final String METADATA_KEY = "GIFTBOX_ACTION";
 
-    public GUIListener(RangGiftBox plugin) {
+    public GUIListener(CreeperGiftBox plugin) {
         this.plugin = plugin;
         this.databaseManager = plugin.getDatabaseManager();
         this.configManager = plugin.getConfigManager();

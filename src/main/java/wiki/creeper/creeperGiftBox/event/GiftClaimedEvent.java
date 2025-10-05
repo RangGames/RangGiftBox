@@ -1,8 +1,8 @@
-package wiki.creeper.rangGiftBox.event;
+package wiki.creeper.creeperGiftBox.event;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import wiki.creeper.rangGiftBox.model.Gift;
+import wiki.creeper.creeperGiftBox.model.Gift;
 
 public class GiftClaimedEvent extends GiftBoxEvent {
     private static final HandlerList HANDLERS = new HandlerList();

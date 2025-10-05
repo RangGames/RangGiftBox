@@ -1,15 +1,15 @@
-package wiki.creeper.rangGiftBox.database;
+package wiki.creeper.creeperGiftBox.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.Bukkit;
-import wiki.creeper.rangGiftBox.RangGiftBox;
-import wiki.creeper.rangGiftBox.config.ConfigManager;
-import wiki.creeper.rangGiftBox.event.GiftExpiredEvent;
-import wiki.creeper.rangGiftBox.event.GiftSentEvent;
-import wiki.creeper.rangGiftBox.model.Gift;
-import wiki.creeper.rangGiftBox.util.ItemSerializer;
-import wiki.creeper.rangGiftBox.util.SchedulerUtil;
+import wiki.creeper.creeperGiftBox.CreeperGiftBox;
+import wiki.creeper.creeperGiftBox.config.ConfigManager;
+import wiki.creeper.creeperGiftBox.event.GiftExpiredEvent;
+import wiki.creeper.creeperGiftBox.event.GiftSentEvent;
+import wiki.creeper.creeperGiftBox.model.Gift;
+import wiki.creeper.creeperGiftBox.util.ItemSerializer;
+import wiki.creeper.creeperGiftBox.util.SchedulerUtil;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -22,27 +22,30 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 /**
- * Manages all database operations for the RangGiftBox plugin.
+ * Manages all database operations for the CreeperGiftBox plugin.
  * 
  * This class handles database connections using HikariCP connection pooling,
  * performs async database operations, and manages the gift and log tables.
  * All public methods return CompletableFuture for non-blocking operations.
  * 
- * @author RangGiftBox Team
+ * @author CreeperGiftBox Team
  */
 public class DatabaseManager {
 
     private static final String TABLE_PRESENT = "present";
     private static final String TABLE_PRESENT_LOG = "present_log";
     
-    private final RangGiftBox plugin;
+    private final CreeperGiftBox plugin;
     private final HikariDataSource dataSource;
     private volatile boolean isInitialized = false;
     private final Executor queryExecutor;
     private volatile boolean closed = false;
+    private final CompletableFuture<Void> initializationFuture = new CompletableFuture<>();
+    private final AtomicBoolean initializationStarted = new AtomicBoolean(false);
 
     /**
      * Creates a new DatabaseManager with HikariCP connection pool.
@@ -51,7 +54,7 @@ public class DatabaseManager {
      * @param configManager The configuration manager for database settings
      * @throws RuntimeException if database initialization fails
      */
-    public DatabaseManager(RangGiftBox plugin, ConfigManager configManager) {
+    public DatabaseManager(CreeperGiftBox plugin, ConfigManager configManager) {
         this.plugin = plugin;
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://" + configManager.getDbHost() + ":" + configManager.getDbPort() + "/" + configManager.getDbName());
@@ -60,7 +63,7 @@ public class DatabaseManager {
         config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("prepStmtCacheSize", "250");
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        config.setPoolName("RangGiftBox-Pool");
+        config.setPoolName("CreeperGiftBox-Pool");
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
         config.setConnectionTimeout(30000);
@@ -85,12 +88,19 @@ public class DatabaseManager {
      * @return CompletableFuture<Boolean> true if initialization succeeds, false otherwise
      */
     public CompletableFuture<Boolean> initialize() {
+        if (!initializationStarted.compareAndSet(false, true)) {
+            return initializationFuture.handle((ignored, throwable) -> throwable == null);
+        }
+
         return CompletableFuture.supplyAsync(() -> {
             if (isInitialized) {
                 plugin.getLogger().warning("Database already initialized, skipping...");
+                if (!initializationFuture.isDone()) {
+                    initializationFuture.complete(null);
+                }
                 return true;
             }
-            
+
             try (Connection connection = dataSource.getConnection()) {
                 String createPresentTable = "CREATE TABLE IF NOT EXISTS present (" +
                         "ID VARCHAR(36) PRIMARY KEY, " +
@@ -117,18 +127,37 @@ public class DatabaseManager {
                 try (PreparedStatement ps = connection.prepareStatement(createLogTable)) {
                     ps.execute();
                 }
-                
+
                 isInitialized = true;
+                if (!initializationFuture.isDone()) {
+                    initializationFuture.complete(null);
+                }
                 plugin.getLogger().info("Database tables initialized successfully");
                 return true;
             } catch (SQLException e) {
+                if (!initializationFuture.isDone()) {
+                    initializationFuture.completeExceptionally(e);
+                }
                 plugin.getLogger().log(Level.SEVERE, "Could not initialize database tables!", e);
                 return false;
             }
         }, queryExecutor).exceptionally(throwable -> {
+            if (!initializationFuture.isDone()) {
+                initializationFuture.completeExceptionally(throwable);
+            }
             plugin.getLogger().log(Level.SEVERE, "Unexpected error during database initialization", throwable);
             return false;
         });
+    }
+
+    /**
+     * Returns a future that completes when the database has finished initializing.
+     * External callers can await this to ensure the schema is ready.
+     *
+     * @return CompletableFuture that completes on successful initialization
+     */
+    public CompletableFuture<Void> whenReady() {
+        return initializationFuture;
     }
 
     /**

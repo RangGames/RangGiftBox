@@ -1,10 +1,10 @@
-package wiki.creeper.rangGiftBox.api;
+package wiki.creeper.creeperGiftBox.api;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import wiki.creeper.rangGiftBox.RangGiftBox;
-import wiki.creeper.rangGiftBox.database.DatabaseManager;
-import wiki.creeper.rangGiftBox.model.Gift;
+import wiki.creeper.creeperGiftBox.CreeperGiftBox;
+import wiki.creeper.creeperGiftBox.database.DatabaseManager;
+import wiki.creeper.creeperGiftBox.model.Gift;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +16,10 @@ import java.util.logging.Level;
 
 public class GiftBoxAPIImpl implements GiftBoxAPI {
 
-    private final RangGiftBox plugin;
+    private final CreeperGiftBox plugin;
     private final DatabaseManager databaseManager;
 
-    public GiftBoxAPIImpl(RangGiftBox plugin, DatabaseManager databaseManager) {
+    public GiftBoxAPIImpl(CreeperGiftBox plugin, DatabaseManager databaseManager) {
         this.plugin = plugin;
         this.databaseManager = databaseManager;
     }
@@ -75,11 +75,13 @@ public class GiftBoxAPIImpl implements GiftBoxAPI {
                 expireTime
         );
         
-        return databaseManager.addGift(gift).exceptionally(throwable -> {
-            plugin.getLogger().log(Level.SEVERE, 
-                "Failed to send gift to player " + targetPlayerUUID, throwable);
-            throw new CompletionException("Failed to send gift", throwable);
-        });
+        return databaseManager.whenReady()
+            .thenCompose(ignored -> databaseManager.addGift(gift))
+            .exceptionally(throwable -> {
+                plugin.getLogger().log(Level.SEVERE,
+                    "Failed to send gift to player " + targetPlayerUUID, throwable);
+                throw new CompletionException("Failed to send gift", throwable);
+            });
     }
 
     @Override
@@ -95,7 +97,8 @@ public class GiftBoxAPIImpl implements GiftBoxAPI {
         // Cap the limit to prevent excessive database queries
         int cappedLimit = Math.min(limit, 100);
         
-        return databaseManager.getGifts(playerUUID, cappedLimit)
+        return databaseManager.whenReady()
+            .thenCompose(ignored -> databaseManager.getGifts(playerUUID, cappedLimit))
             .exceptionally(throwable -> {
                 plugin.getLogger().log(Level.WARNING, 
                     "Failed to retrieve gifts for player " + playerUUID, throwable);
@@ -108,12 +111,18 @@ public class GiftBoxAPIImpl implements GiftBoxAPI {
     public CompletableFuture<Integer> getPlayerGiftCount(UUID playerUUID) {
         Objects.requireNonNull(playerUUID, "playerUUID cannot be null");
         
-        return databaseManager.getGiftCount(playerUUID)
+        return databaseManager.whenReady()
+            .thenCompose(ignored -> databaseManager.getGiftCount(playerUUID))
             .exceptionally(throwable -> {
                 plugin.getLogger().log(Level.WARNING, 
                     "Failed to get gift count for player " + playerUUID, throwable);
                 // Return 0 on failure
                 return 0;
             });
+    }
+
+    @Override
+    public CompletableFuture<Void> whenReady() {
+        return databaseManager.whenReady();
     }
 }

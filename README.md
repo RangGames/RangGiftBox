@@ -1,4 +1,4 @@
-# RangGiftBox
+# CreeperGiftBox
 
 A comprehensive gift box system for Minecraft Spigot servers that allows players to send and receive items as gifts with database persistence and expiration support.
 
@@ -21,10 +21,10 @@ A comprehensive gift box system for Minecraft Spigot servers that allows players
 
 ## Installation
 
-1. Download the latest `RangGiftBox-1.0.2-SNAPSHOT.jar` from releases
+1. Download the latest `CreeperGiftBox-1.0.3-SNAPSHOT.jar` from releases
 2. Place the JAR file in your server's `plugins` folder
 3. Start the server to generate the default configuration
-4. Edit `plugins/RangGiftBox/config.yml` with your database credentials
+4. Edit `plugins/CreeperGiftBox/config.yml` with your database credentials
 5. Restart the server or reload the plugin
 
 ## Configuration
@@ -71,7 +71,7 @@ messages:
 
 ## API Usage
 
-RangGiftBox provides a public API for developers to integrate with their plugins.
+CreeperGiftBox provides a public API for developers to integrate with their plugins.
 
 ### Getting the API
 ```java
@@ -111,7 +111,7 @@ api.getPlayerGiftCount(playerUUID).thenAccept(count -> {
 
 ## Events
 
-RangGiftBox fires the following custom events:
+CreeperGiftBox fires the following custom events:
 
 - `GiftSentEvent` - Fired when a gift is sent
 - `GiftClaimedEvent` - Fired when a gift is claimed
@@ -163,10 +163,10 @@ This project uses Maven for dependency management.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/RangGiftBox.git
+git clone https://github.com/yourusername/CreeperGiftBox.git
 
 # Navigate to the project directory
-cd RangGiftBox
+cd CreeperGiftBox
 
 # Build the project
 mvn clean package

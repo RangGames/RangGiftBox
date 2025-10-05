@@ -45,7 +45,7 @@
                     <relocations>
                         <relocation>
                             <pattern>com.zaxxer.hikari</pattern>
-                            <shadedPattern>wiki.creeper.rangGiftBox.lib.hikari</shadedPattern>
+                            <shadedPattern>wiki.creeper.creeperGiftBox.lib.hikari</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
@@ -84,9 +84,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <version>3.4.0</version>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>9.2.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

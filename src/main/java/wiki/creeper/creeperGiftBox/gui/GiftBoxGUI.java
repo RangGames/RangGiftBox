@@ -1,4 +1,4 @@
-package wiki.creeper.rangGiftBox.gui;
+package wiki.creeper.creeperGiftBox.gui;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -8,10 +8,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import wiki.creeper.rangGiftBox.RangGiftBox;
-import wiki.creeper.rangGiftBox.config.ConfigManager;
-import wiki.creeper.rangGiftBox.database.DatabaseManager;
-import wiki.creeper.rangGiftBox.model.Gift;
+import wiki.creeper.creeperGiftBox.CreeperGiftBox;
+import wiki.creeper.creeperGiftBox.config.ConfigManager;
+import wiki.creeper.creeperGiftBox.database.DatabaseManager;
+import wiki.creeper.creeperGiftBox.model.Gift;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,18 +22,18 @@ import java.util.Map;
 
 public class GiftBoxGUI {
 
-    private final RangGiftBox plugin;
+    private final CreeperGiftBox plugin;
     private final DatabaseManager databaseManager;
     private final ConfigManager configManager;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd. HH:mm");
     private final Map<UUID, Long> lastOpenTime = new ConcurrentHashMap<>();
     private static final long OPEN_COOLDOWN = 500; // 500ms cooldown between opens
 
-    public static final NamespacedKey GIFT_ID_KEY = new NamespacedKey(RangGiftBox.getPlugin(RangGiftBox.class), "gift_id");
-    public static final NamespacedKey GIFT_ACTION_KEY = new NamespacedKey(RangGiftBox.getPlugin(RangGiftBox.class), "gift_action");
+    public static final NamespacedKey GIFT_ID_KEY = new NamespacedKey(CreeperGiftBox.getPlugin(CreeperGiftBox.class), "gift_id");
+    public static final NamespacedKey GIFT_ACTION_KEY = new NamespacedKey(CreeperGiftBox.getPlugin(CreeperGiftBox.class), "gift_action");
     public static final String ACTION_CLAIM_ALL = "claim_all";
 
-    public GiftBoxGUI(RangGiftBox plugin) {
+    public GiftBoxGUI(CreeperGiftBox plugin) {
         this.plugin = plugin;
         this.databaseManager = plugin.getDatabaseManager();
         this.configManager = plugin.getConfigManager();

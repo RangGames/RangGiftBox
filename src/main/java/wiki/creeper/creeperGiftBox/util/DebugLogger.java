@@ -1,6 +1,6 @@
-package wiki.creeper.rangGiftBox.util;
+package wiki.creeper.creeperGiftBox.util;
 
-import wiki.creeper.rangGiftBox.RangGiftBox;
+import wiki.creeper.creeperGiftBox.CreeperGiftBox;
 import java.util.logging.Level;
 
 /**
@@ -8,10 +8,10 @@ import java.util.logging.Level;
  */
 public class DebugLogger {
     
-    private final RangGiftBox plugin;
+    private final CreeperGiftBox plugin;
     private final boolean debugEnabled;
     
-    public DebugLogger(RangGiftBox plugin) {
+    public DebugLogger(CreeperGiftBox plugin) {
         this.plugin = plugin;
         this.debugEnabled = plugin.getConfig().getBoolean("debug", false);
     }

@@ -1,17 +1,17 @@
-package wiki.creeper.rangGiftBox.task;
+package wiki.creeper.creeperGiftBox.task;
 
 import org.bukkit.scheduler.BukkitRunnable;
-import wiki.creeper.rangGiftBox.RangGiftBox;
-import wiki.creeper.rangGiftBox.database.DatabaseManager;
-import wiki.creeper.rangGiftBox.util.DebugLogger;
+import wiki.creeper.creeperGiftBox.CreeperGiftBox;
+import wiki.creeper.creeperGiftBox.database.DatabaseManager;
+import wiki.creeper.creeperGiftBox.util.DebugLogger;
 
 public class ExpirationTask extends BukkitRunnable {
 
-    private final RangGiftBox plugin;
+    private final CreeperGiftBox plugin;
     private final DatabaseManager databaseManager;
     private final DebugLogger debugLogger;
 
-    public ExpirationTask(RangGiftBox plugin, DatabaseManager databaseManager) {
+    public ExpirationTask(CreeperGiftBox plugin, DatabaseManager databaseManager) {
         this.plugin = plugin;
         this.databaseManager = databaseManager;
         this.debugLogger = new DebugLogger(plugin);

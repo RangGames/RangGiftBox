@@ -1,4 +1,4 @@
-package wiki.creeper.rangGiftBox.command;
+package wiki.creeper.creeperGiftBox.command;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -10,10 +10,10 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.ChatColor;
-import wiki.creeper.rangGiftBox.RangGiftBox;
-import wiki.creeper.rangGiftBox.config.ConfigManager;
-import wiki.creeper.rangGiftBox.database.DatabaseManager;
-import wiki.creeper.rangGiftBox.util.SchedulerUtil;
+import wiki.creeper.creeperGiftBox.CreeperGiftBox;
+import wiki.creeper.creeperGiftBox.config.ConfigManager;
+import wiki.creeper.creeperGiftBox.database.DatabaseManager;
+import wiki.creeper.creeperGiftBox.util.SchedulerUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,11 +23,11 @@ import java.util.logging.Level;
 
 public class GiftCommand implements CommandExecutor, TabCompleter {
 
-    private final RangGiftBox plugin;
+    private final CreeperGiftBox plugin;
     private final DatabaseManager databaseManager;
     private final ConfigManager configManager;
 
-    public GiftCommand(RangGiftBox plugin) {
+    public GiftCommand(CreeperGiftBox plugin) {
         this.plugin = plugin;
         this.databaseManager = plugin.getDatabaseManager();
         this.configManager = plugin.getConfigManager();

@@ -1,18 +1,18 @@
-package wiki.creeper.rangGiftBox.config;
+package wiki.creeper.creeperGiftBox.config;
 
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
-import wiki.creeper.rangGiftBox.RangGiftBox;
+import wiki.creeper.creeperGiftBox.CreeperGiftBox;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ConfigManager {
 
-    private final RangGiftBox plugin;
+    private final CreeperGiftBox plugin;
     private FileConfiguration config;
 
-    public ConfigManager(RangGiftBox plugin) {
+    public ConfigManager(CreeperGiftBox plugin) {
         this.plugin = plugin;
         this.plugin.saveDefaultConfig();
         this.config = this.plugin.getConfig();

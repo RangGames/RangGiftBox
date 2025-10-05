@@ -1,29 +1,29 @@
-package wiki.creeper.rangGiftBox;
+package wiki.creeper.creeperGiftBox;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
-import wiki.creeper.rangGiftBox.api.GiftBoxAPI;
-import wiki.creeper.rangGiftBox.api.GiftBoxAPIImpl;
-import wiki.creeper.rangGiftBox.command.GiftCommand;
-import wiki.creeper.rangGiftBox.config.ConfigManager;
-import wiki.creeper.rangGiftBox.database.DatabaseManager;
-import wiki.creeper.rangGiftBox.gui.GiftBoxGUI;
-import wiki.creeper.rangGiftBox.listener.GUIListener;
-import wiki.creeper.rangGiftBox.listener.PlayerListener;
-import wiki.creeper.rangGiftBox.task.ExpirationTask;
+import wiki.creeper.creeperGiftBox.api.GiftBoxAPI;
+import wiki.creeper.creeperGiftBox.api.GiftBoxAPIImpl;
+import wiki.creeper.creeperGiftBox.command.GiftCommand;
+import wiki.creeper.creeperGiftBox.config.ConfigManager;
+import wiki.creeper.creeperGiftBox.database.DatabaseManager;
+import wiki.creeper.creeperGiftBox.gui.GiftBoxGUI;
+import wiki.creeper.creeperGiftBox.listener.GUIListener;
+import wiki.creeper.creeperGiftBox.listener.PlayerListener;
+import wiki.creeper.creeperGiftBox.task.ExpirationTask;
 
 /**
- * RangGiftBox - A comprehensive gift box system for Minecraft servers
+ * CreeperGiftBox - A comprehensive gift box system for Minecraft servers
  * 
  * This plugin provides a database-backed gift system where players can send
  * and receive items as gifts. Features include expiration support, GUI interface,
  * async operations, and a public API for integration with other plugins.
  * 
- * @author RangGiftBox Team
+ * @author CreeperGiftBox
  * @version 1.0.2
  */
-public final class RangGiftBox extends JavaPlugin {
+public final class CreeperGiftBox extends JavaPlugin {
 
     private ConfigManager configManager;
     private DatabaseManager databaseManager;
@@ -38,7 +38,11 @@ public final class RangGiftBox extends JavaPlugin {
     @Override
     public void onEnable() {
         configManager = new ConfigManager(this);
-        
+
+        if (!ensureDatabaseDriver()) {
+            getLogger().severe("MySQL JDBC driver not found. Dependent plugins may fail to connect to the database.");
+        }
+
         try {
             databaseManager = new DatabaseManager(this, configManager);
         } catch (RuntimeException e) {
@@ -46,6 +50,10 @@ public final class RangGiftBox extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        giftBoxAPI = new GiftBoxAPIImpl(this, databaseManager);
+        Bukkit.getServicesManager().register(GiftBoxAPI.class, giftBoxAPI, this, ServicePriority.Normal);
+        getLogger().info("GiftBox API registered. Awaiting database initialization...");
         
         databaseManager.initialize().thenAccept(success -> {
             if (!success) {
@@ -57,9 +65,6 @@ public final class RangGiftBox extends JavaPlugin {
             getServer().getScheduler().runTask(this, () -> {
                 giftBoxGUI = new GiftBoxGUI(this);
 
-                giftBoxAPI = new GiftBoxAPIImpl(this, databaseManager);
-                Bukkit.getServicesManager().register(GiftBoxAPI.class, giftBoxAPI, this, ServicePriority.Normal);
-
                 GiftCommand giftCommand = new GiftCommand(this);
                 getCommand("우편함").setExecutor(giftCommand);
                 getCommand("우편함").setTabCompleter(giftCommand);
@@ -70,7 +75,7 @@ public final class RangGiftBox extends JavaPlugin {
                 long interval = configManager.getExpirationCheckInterval() * 20;
                 new ExpirationTask(this, databaseManager).runTaskTimerAsynchronously(this, 20L * 60, interval);
 
-                getLogger().info("RangGiftBox has been enabled successfully!");
+                getLogger().info("CreeperGiftBox has been enabled successfully!");
             });
         }).exceptionally(throwable -> {
             getLogger().severe("Unexpected error during plugin initialization: " + throwable.getMessage());
@@ -93,7 +98,7 @@ public final class RangGiftBox extends JavaPlugin {
         if (databaseManager != null) {
             databaseManager.close();
         }
-        getLogger().info("RangGiftBox has been disabled.");
+        getLogger().info("CreeperGiftBox has been disabled.");
     }
 
     /**
@@ -129,5 +134,14 @@ public final class RangGiftBox extends JavaPlugin {
      */
     public GiftBoxAPI getGiftBoxAPI() {
         return giftBoxAPI;
+    }
+
+    private boolean ensureDatabaseDriver() {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver", true, getClass().getClassLoader());
+            return true;
+        } catch (ClassNotFoundException ex) {
+            return false;
+        }
     }
 }

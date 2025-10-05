@@ -1,4 +1,4 @@
-package wiki.creeper.rangGiftBox.model;
+package wiki.creeper.creeperGiftBox.model;
 
 import org.bukkit.inventory.ItemStack;
 

@@ -1,6 +1,6 @@
 name: ${project.name}
 version: ${project.version}
-main: wiki.creeper.rangGiftBox.RangGiftBox
+main: wiki.creeper.creeperGiftBox.CreeperGiftBox
 api-version: '1.21'
 author: Gemini Code Assist
 description: A comprehensive gift box system for Minecraft servers.
